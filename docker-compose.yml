@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: tasktracker-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TZ: UTC
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    image: nand/testtask6:latest
+    container_name: testtask6-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Spring will read these in application.yml via ${...}
+      - POSTGRES_URL=jdbc:postgresql://postgres:5432/postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - SPRING_PROFILES_ACTIVE=prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tasknet
+
+volumes:
+  pg_data:
+
+networks:
+  tasknet:
+    driver: bridge

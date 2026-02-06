@@ -1,4 +1,4 @@
-
+#.env - для наглядности
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
